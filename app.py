@@ -120,29 +120,36 @@ class StatsView(Widget):
         column = self.data_widget.data.get_column(self.data_widget.view.column_select)
         stats = column.get_stats()
         avail_width = self._size.width-20
-        hist = column.get_histogram(avail_width)
         stat_tree = Tree('Stats')
-        if 'Q' in stats.keys():
-            qtree = Tree('Quantiles')
-            levels = stats['Q']['levels']
-            values = stats['Q']['values']
-            for l,v in zip(stats['Q']['levels'], stats['Q']['values']):
-                qtree.add(f'P{l:0.2f} = {column.format_value(v)}')
-            #stat_tree.add(qtree)
+        # make a histogram
+        if 'Quantiles' in stats.keys():
+            hist = column.get_histogram(avail_width)
+            #qtree = Tree('Quantiles')
+            levels = stats['Quantiles']['levels']
+            values = stats['Quantiles']['values']
+            #for l,v in zip(stats['Quantiles']['levels'], stats['Quantiles']['values']):
+            #    qtree.add(f'P{l:0.2f} = {column.format_value(v)}')
             x_axis, q_index = "", 0
             while len(x_axis) < avail_width:
                 quantile = len(x_axis) / float(avail_width)
-                q_index = np.argmin(stats['Q']['levels'] < quantile)
-                x_axis += f'|{column.format_value(stats["Q"]["values"][q_index])}   '
+                q_index = np.argmin(stats['Quantiles']['levels'] < quantile)
+                x_axis += f'|{column.format_value(stats["Quantiles"]["values"][q_index])}   '
             stat_tree.add(x_axis)
-        #if 'nan' in stats.keys():
-        #    stat_tree.add(f'nan count = {stats["nan"]}')
-        hist_str = ""
-        levels = 10
-        for ii in range(levels, 0, -1):
-            value = np.max(hist[0]) * (ii-1) / levels
-            hist_str += ''.join([ '#' if x > value else ' ' for x in hist[0]])+'\n'
-        stat_tree.add(Panel(hist_str))
+            hist_str = ""
+            levels = 10
+            for ii in range(levels, 0, -1):
+                value = np.max(hist[0]) * (ii-1) / levels
+                hist_str += ''.join([ '#' if x > value else ' ' for x in hist[0]])+'\n'
+            stat_tree.add(Panel(hist_str))
+        # count most frequent
+        elif 'counts' in stats.keys():
+            ctree = Tree('Counts')
+            category_count = 0
+            for key, count in zip(stats['counts'].index, stats['counts'].values):
+                if category_count > self._size.height:
+                    break
+                ctree.add(f'{key} = {count}')
+            stat_tree.add(ctree)
         return Panel(stat_tree)
 
 class CSView(App):
@@ -151,8 +158,8 @@ class CSView(App):
     #    self.filepath = filepath
     #    super().__init__(**kwargs)
 
-    async def set_filepath(self, filepath):
-        self.filepath = filepath
+    #async def set_filepath(self, filepath):
+    #    self.filepath = filepath
 
     async def on_load(self, event: events.Load) -> None:
         """Bind keys with the app loads (but before entering application mode)"""
@@ -175,6 +182,7 @@ class CSView(App):
 
     async def action_nav(self, direction:str, amount:int) -> None:
         await self.data.action_nav(direction, amount)
+        await self.statsview.action_nav(direction, amount)
         await self.columnlist.action_nav(direction, amount)
 
     async def action_col(self, operation:str, direction:str, amount:int) -> None:
@@ -194,7 +202,7 @@ class CSView(App):
         await self.view.dock(Header(), edge="top")
         await self.view.dock(Footer(), edge="bottom")
         await self.view.dock(self.columnlist, edge="left", size=int(0.25*self.console.width), name="columnsbar")
-        await self.view.dock(self.statsview, edge="bottom", size=int(0.25*self.console.height), name="statsbar")
+        await self.view.dock(self.statsview, edge="bottom", size=int(0.5*self.console.height), name="statsbar")
         # Dock the body in the remaining space
         #await self.data.resize()
         await self.view.dock(self.data, edge="right")
@@ -208,7 +216,7 @@ class CSView(App):
         await self.view.dock(Header(), edge="top")
         await self.view.dock(Footer(), edge="bottom")
         await self.view.dock(self.columnlist, edge="left", size=int(0.25*self.console.width), name="columnsbar")
-        await self.view.dock(self.statsview, edge="bottom", size=int(0.25*self.console.height), name="statsbar")
+        await self.view.dock(self.statsview, edge="bottom", size=int(0.5*self.console.height), name="statsbar")
 
         # Dock the body in the remaining space
         await self.view.dock(self.data, edge="right")

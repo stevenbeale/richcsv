@@ -96,8 +96,8 @@ class Column:
         if type(self.stats) == type(None):
             if np.issubdtype(self.column_dtype, np.integer) or np.issubdtype(self.column_dtype, np.float):
                 typed_data = [x for x in self.column_data if not np.isnan(x)]
-                self.stats = { 'Q': {'levels':np.arange(0,1.05,0.05),
-                                     'values':np.quantile(typed_data, np.arange(0,1.05,0.05))},
+                self.stats = { 'Quantiles': {'levels':np.arange(0,1.05,0.05),
+                                             'values':np.quantile(typed_data, np.arange(0,1.05,0.05))},
                                'mean':np.mean(typed_data),
                                'nan':len([x for x in self.column_data if np.isnan(x)]) }
             else:

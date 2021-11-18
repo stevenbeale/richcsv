@@ -131,7 +131,7 @@ class View:
             self.row_bottom = self.find_row_index_down(self.row_top, self.height-TOP_PAD-BOT_PAD)
         # shrink if too many columns, expand if too few columns
         if cols_width > cols_allowed or cols_width < (cols_allowed-self.expand_tolerance):
-            self.column_left = self.column_select
+            #self.column_left = self.column_select
             self.column_right = self.find_column_index_right(self.column_left, self.width-RIG_PAD-LEF_PAD)
 
     def limit(self):

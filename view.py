@@ -16,6 +16,7 @@ class View:
         """
         self.column_width = [initial_column_width for _ in range(0,number_columns)]
         self.row_height = [initial_row_height for _ in range(0,number_rows)]
+        self.column_always_visible = [ False for _ in range(0,number_columns)]
         self.column_left = 0
         self.column_select = 0
         self.column_right = self.number_columns-1
@@ -27,7 +28,7 @@ class View:
         self.expand_tolerance = 10
 
     def get_drawn_columns(self):
-        return [(icol,icol==self.column_select) for icol in range(self.column_left, self.column_right+1)]
+        return [(icol,icol==self.column_select) for icol in range(0, self.number_columns) if self.is_column_visible(icol)]
 
     def get_all_columns(self):
         return [(icol,icol==self.column_select) for icol in range(0,self.number_columns)]
@@ -36,7 +37,11 @@ class View:
         return [(irow,irow==self.row_select) for irow in range(self.row_top, self.row_bottom+1)]
 
     def is_column_visible(self, column_index):
-        return column_index >= self.column_left and column_index <= self.column_right
+        #return column_index >= self.column_left and column_index <= self.column_right
+        return (column_index >= self.column_left and column_index <= self.column_right) or self.column_always_visible[column_index]
+
+    def toggle_always_visible(self):
+        self.column_always_visible[self.column_select] = not self.column_always_visible[self.column_select]
 
     def is_row_visible(self, row_index):
         return row_index >= self.row_top and row_index <= self.row_bottom

@@ -31,6 +31,10 @@ class Data(Widget):
     async def action_toggle_bar(self) -> None:
         self.refresh()
 
+    async def action_toggle_always_visible(self) -> None:
+        self.view.toggle_always_visible()
+        self.refresh()
+
     async def action_nav(self, direction:str, amount:int) -> None:
         self.view.navigate(direction, amount)
         self.refresh()
@@ -179,6 +183,7 @@ class CSView(App):
         await self.bind("shift+down","col('width','-',1)","Decrease column width")
         await self.bind("h","col('hide','',0)","toggle visible")
         await self.bind("j","col('justify','',0)","toggle r/l justified")
+        await self.bind("v","toggle_always_visible()","toggle always visible")
 
     async def action_nav(self, direction:str, amount:int) -> None:
         await self.data.action_nav(direction, amount)
@@ -197,6 +202,9 @@ class CSView(App):
         await self.view.action_toggle('statsbar')
         await self.data.action_toggle_bar()
 
+    async def action_toggle_always_visible(self):
+        await self.data.action_toggle_always_visible()
+ 
     async def on_resize(self, event: events.Resize) -> None:
         # redock to new view
         await self.view.dock(Header(), edge="top")
